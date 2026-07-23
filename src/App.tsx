@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { PlatformIcon } from "./PlatformIcon";
+import { PlatformIcon } from "@/components/common/PlatformIcon";
 import { useStreamStats } from "./useStreamStats";
 import { openJoystickReporting } from "./joystickReporting";
-import "./design-system/styles.css";
-import { Button, Card, SectionHead } from "./design-system/components/core";
+import "../../design-system/styles.css";
+import { Button, Card, SectionHead } from "../../design-system/components/core";
 
 function formatUptime(startedAt: string | undefined): string {
   if (!startedAt) return "—";

@@ -25,17 +25,16 @@ export function useStreamStats() {
   kickSlugRef.current = kickSlug;
 
   const poll = useCallback(async () => {
-    const [credentials, twitchResult, kickResult] = await Promise.all([
-      invoke<{ twitch_access_token: string } | null>("get_credentials").catch(() => null),
+    const [account, twitchResult, kickResult] = await Promise.all([
+      invoke<{ username: string; user_id: string } | null>("alerts_oauth_get_account").catch(() => null),
       invoke<TwitchStats>("twitch_stream_stats").catch((e: unknown) => e),
       kickSlugRef.current.trim()
         ? invoke<KickStats>("kick_channel_stats", { slug: kickSlugRef.current.trim() }).catch((e: unknown) => e)
         : Promise.resolve(null),
     ]);
 
-    const connected = !!credentials?.twitch_access_token;
-    setTwitchConnected(connected);
-    if (connected) {
+    setTwitchConnected(!!account);
+    if (account) {
       if (twitchResult && typeof twitchResult === "object" && "is_live" in twitchResult) {
         setTwitch(twitchResult as TwitchStats);
         setTwitchError("");
@@ -56,6 +55,26 @@ export function useStreamStats() {
       setKickError(String(kickResult));
     }
   }, []);
+
+  // Feeds the Overlay Maker's live-data-bound fields (see overlay_manager.rs's
+  // /data-ws) so a "Followers" or "Viewers" field built there stays current
+  // without Stream Stats needing to be the focused tool.
+  useEffect(() => {
+    const publish = (key: string, value: number | undefined) => {
+      if (value === undefined) return;
+      invoke("overlay_publish_data", { key, value }).catch(() => {});
+    };
+    const twitchViewers = twitch?.is_live ? twitch.viewer_count ?? 0 : 0;
+    const kickViewers = kick?.is_live ? kick.viewer_count ?? 0 : 0;
+    if (twitch || kick) publish("viewers", twitchViewers + kickViewers);
+    publish("followers", twitch?.follower_total);
+    publish("subscribers", twitch?.subscriber_total);
+    const startedAt = twitch?.is_live ? twitch.started_at : kick?.is_live ? kick.started_at : undefined;
+    if (startedAt) {
+      const seconds = Math.max(0, Math.floor((Date.now() - new Date(startedAt).getTime()) / 1000));
+      publish("uptime", seconds);
+    }
+  }, [twitch, kick]);
 
   useEffect(() => {
     poll();
