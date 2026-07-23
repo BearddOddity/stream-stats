@@ -1,0 +1,27 @@
+[package]
+name = "stream-stats"
+version = "0.1.0"
+description = "Live viewer count, follower total, and stream stats across Twitch and Kick"
+authors = ["BearddOddity"]
+edition = "2021"
+
+[lib]
+name = "stream_stats_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+reqwest = { version = "0.12", features = ["json"] }
+tokio = { version = "1.40", features = ["full"] }
+
+
+[profile.release]
+panic = "abort"
+codegen-units = 1
+lto = true
+strip = true
