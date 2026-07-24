@@ -8,6 +8,8 @@ launcher tools (see StreamerSuite's `VENDORING.md`).
 
 ## Branches
 
+**Hard rule: `main` is the standalone product and the only branch anyone builds or ships from — the StreamerSuite integration must never be merged into or otherwise land on `main`.**
+
 - `main` — the standalone app. Build/run independently with `npm install && npm run tauri dev`.
 - `streamersuite-integration` — the StreamerSuite-adapted version (shared theme/settings, and shared backend where applicable). Not independently buildable; it's the staging copy for what's vendored into StreamerSuite's `src/apps/stream-stats/`.
 
